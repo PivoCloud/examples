@@ -31,21 +31,32 @@ This is deliberate, and it is the answer to "which Node/Python/Go versions do
 you support": **whichever your base image pins.** The runtime is yours to
 choose, not ours to bless, so nothing breaks under you when we upgrade.
 
-### 2. Read `PORT` from the environment. Never bake it into the image.
+### 2. Listen on the port you declare with `EXPOSE`
 
-The platform injects `PORT` at runtime and probes it. A value baked into the
-image with `ENV PORT=...` **shadows the injected one**, and `dotenv` will not
-overwrite an existing variable either.
+**PivoCloud does not set a `PORT` environment variable.** It probes the port
+your image declares with `EXPOSE`, so that is the port your process has to be
+listening on.
+
+Write it so the same image is correct everywhere. Read `PORT` if something set
+it, because Render, Railway and Heroku all do, and fall back to the value you
+declared with `EXPOSE`:
 
 ```js
-const port = process.env.PORT || 3000;   // fallback only for local runs
+// Dockerfile says: EXPOSE 8080
+const port = process.env.PORT || 8080;
 app.listen(port, "0.0.0.0");
 ```
 
-When this is wrong the deploy fails with *"did not respond on the PORT
-environment variable"*, which is emitted for almost every boot failure and
-rarely means what it says. If you see it, read the container logs before
-assuming it is about the port.
+Do not hardcode a value that differs from `EXPOSE`, and do not set `ENV PORT`
+in the Dockerfile: a variable baked into the image is one more place for the
+two numbers to drift apart.
+
+When this is wrong, the deploy fails with *"the container started but your app
+did not respond on the PORT environment variable"*. Read that message as **"we
+could not reach your app on the port it declared"**, because it is emitted for
+almost every boot failure and it names a variable we do not actually set. If
+you see it, check `EXPOSE` against the port in your startup log first, then
+read the container logs.
 
 ### 3. Bind `0.0.0.0`, not `localhost`
 
