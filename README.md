@@ -1,17 +1,23 @@
 # PivoCloud examples
 
-Working, deployable examples for [PivoCloud](https://pivocloud.com), plus the
-deployment contract every app has to meet.
+The deployment contract for [PivoCloud](https://pivocloud.com), and working
+examples that meet it.
 
-Each directory is a complete application you can deploy as-is. Clone one, point
-PivoCloud at it, and it runs. Then replace the app code with yours.
+Each example is its own repository, so you can deploy it as-is or press **Use
+this template** to get your own copy already set up.
 
 | Example | What it is |
 |---|---|
-| [`node-express-vite`](./node-express-vite) | Express API serving a built Vite frontend. **One service, one bill.** |
-| [`vite-static-nginx`](./vite-static-nginx) | A built Vite frontend served by nginx, as its own service. |
+| [example-node-express-vite](https://github.com/PivoCloud/example-node-express-vite) | Express API serving a built Vite frontend. **One service, one bill.** |
+| [example-vite-static-nginx](https://github.com/PivoCloud/example-vite-static-nginx) | A built Vite frontend served by nginx, as its own service. |
+
+> **Why separate repositories?** PivoCloud builds from the root of a repository
+> and has no root-directory setting yet, so an example living in a
+> subdirectory cannot be deployed. One repo per example keeps every one of them
+> a single paste away from running.
 
 ## The deployment contract
+
 
 Six rules. Meet them and your app deploys. Most deploy failures are one of the
 first two.
