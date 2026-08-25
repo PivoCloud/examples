@@ -10,11 +10,13 @@ this template** to get your own copy already set up.
 |---|---|
 | [example-node-express-vite](https://github.com/PivoCloud/example-node-express-vite) | Express API serving a built Vite frontend. **One service, one bill.** |
 | [example-vite-static-nginx](https://github.com/PivoCloud/example-vite-static-nginx) | A built Vite frontend served by nginx, as its own service. |
+| [example-monorepo-two-apps](https://github.com/PivoCloud/example-monorepo-two-apps) | An API and a frontend in one repository, deployed as two apps. **Two Dockerfiles, no Dockerfile at the root.** |
 
-> **Why separate repositories?** PivoCloud builds from the root of a repository
-> and has no root-directory setting yet, so an example living in a
-> subdirectory cannot be deployed. One repo per example keeps every one of them
-> a single paste away from running.
+> **Why separate repositories?** So that each one is a single paste away from
+> running, and **Use this template** gives you a copy of that example and
+> nothing else. It is not a platform limit: an app builds from whichever
+> subdirectory you point it at, which is what `monorepo-two-apps` is there to
+> show.
 
 ## The deployment contract
 
@@ -22,7 +24,7 @@ this template** to get your own copy already set up.
 Six rules. Meet them and your app deploys. Most deploy failures are one of the
 first two.
 
-### 1. A Dockerfile at the root of the repository
+### 1. A Dockerfile
 
 PivoCloud builds from your Dockerfile. There is no build auto-detection, no
 buildpack, and no framework guessing.
@@ -30,6 +32,26 @@ buildpack, and no framework guessing.
 This is deliberate, and it is the answer to "which Node/Python/Go versions do
 you support": **whichever your base image pins.** The runtime is yours to
 choose, not ours to bless, so nothing breaks under you when we upgrade.
+
+By default it builds a file named `Dockerfile` at the root of the repository.
+Two optional per-app settings move that, on the creation form and on the app's
+settings page afterwards:
+
+- **Root directory** is the build context, the directory Docker can see.
+  Default: the repository root. Nothing above it exists as far as the build is
+  concerned, so `COPY ../shared` cannot work.
+- **Dockerfile path** is the file to build, **relative to the root directory**,
+  not to the repository root. Default: `Dockerfile`.
+
+Leave both blank and nothing changes. Set them and a repository with no
+Dockerfile at its root deploys fine, and two apps can build two different
+Dockerfiles out of one repository. See
+[monorepo-two-apps](https://github.com/PivoCloud/example-monorepo-two-apps).
+
+When the resolved path is wrong, the deploy fails with *"No Dockerfile at
+`<path>` (build context: `<dir>`)"*, and the message then lists the Dockerfiles
+it did find in your repository. Read that list first: it usually shows you
+exactly which of the two settings is off.
 
 ### 2. Listen on the port you declare with `EXPOSE`
 
@@ -70,9 +92,12 @@ frontend, you have two choices:
 
 - **Serve the built frontend from the backend.** One repo, one Dockerfile, one
   container, one billed service. See `node-express-vite`.
-- **Deploy them as two apps.** Two Dockerfiles, two billed services. Sometimes
-  the right call, especially mid-migration when you would rather not change
-  application code at the same time as changing host.
+- **Deploy them as two apps, out of one repository.** Two Dockerfiles, two
+  billed services, one repo: give each app its own root directory and it builds
+  its own Dockerfile. Sometimes the right call, especially mid-migration when
+  you would rather not change application code at the same time as changing
+  host. See
+  [monorepo-two-apps](https://github.com/PivoCloud/example-monorepo-two-apps).
 
 A worker with no HTTP surface does not fit the app model. Neither do services
 that must scale independently.
@@ -90,7 +115,8 @@ fi
 exec "$@"
 ```
 
-Both examples ship this pattern in their entrypoint.
+`node-express-vite` and the API in `monorepo-two-apps` ship this pattern in
+their entrypoint.
 
 ### 6. The filesystem is ephemeral
 
@@ -127,7 +153,14 @@ than a hot reload.
 
 One thing that surprises people: **`VITE_*` variables are read at build time**
 and baked into the JavaScript bundle. Setting them in the platform's runtime
-environment has no effect on the browser. Pass them as build arguments.
+environment has no effect on the browser, and PivoCloud passes no build
+arguments, so a `VITE_*` value can only be whatever your repository contained
+when the image was built.
+
+Anything the browser has to learn per environment goes in at container start
+instead: have your entrypoint render a small `config.js` from the environment,
+and read it from the page. `monorepo-two-apps` does exactly that to tell its
+frontend where its API lives.
 
 ## Contributing
 
