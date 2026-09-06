@@ -23,8 +23,8 @@ The deployment contract and the rest of the documentation live at [docs.pivoclou
 ## The deployment contract
 
 The six rules a repository must meet now live at
-[docs.pivocloud.com](https://docs.pivocloud.com), kept in one place so they
-cannot drift from the platform.
+[docs.pivocloud.com/apps/deployment-contract](https://docs.pivocloud.com/apps/deployment-contract),
+kept in one place so they cannot drift from the platform.
 
 ## Connecting to a managed PostgreSQL
 
